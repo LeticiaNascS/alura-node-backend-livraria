@@ -4,7 +4,14 @@ import { autores, livros } from "../models/index.js";
 class LivroController {
   static listarLivros = async (req, res, next) => {
     try {
-      const livrosResultado = await livros.find().populate("autor").exec();
+      const { limite = 5, pagina = 1 } = req.query;
+
+      const livrosResultado = await livros
+        .find()
+        .skip((pagina - 1) * limite)
+        .limit(limite)
+        .populate("autor")
+        .exec();
 
       res.status(200).json(livrosResultado);
     } catch (erro) {
@@ -81,9 +88,13 @@ class LivroController {
     try {
       const busca = await processarBusca(req.query);
 
-      const livrosResultado = await livros.find(busca).populate("autor");
+      if (busca) {
+        const livrosResultado = await livros.find(busca).populate("autor");
 
-      res.status(200).send(livrosResultado);
+        res.status(200).send(livrosResultado);
+      } else {
+        res.status(200).send([]);
+      }
     } catch (erro) {
       next(erro);
     }
@@ -93,7 +104,7 @@ class LivroController {
 async function processarBusca(parametros) {
   const { editora, titulo, minPaginas, maxPaginas, nomeAutor } = parametros;
 
-  const busca = {};
+  let busca = {};
 
   if (editora) busca.editora = editora;
 
@@ -111,7 +122,7 @@ async function processarBusca(parametros) {
     if (autor) {
       busca.autor = autor._id;
     } else {
-      busca.erro = { message: "Autor não encontrado" };
+      busca = null;
     }
   }
 
