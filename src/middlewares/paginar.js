@@ -1,4 +1,4 @@
-import requisicaoIncorreta from "../erros/requisicaoIncorreta";
+import requisicaoIncorreta from "../erros/requisicaoIncorreta.js";
 async function paginar(req, res, next) {
   try {
     let { limite = 5, pagina = 1, ordenacao = "id-1" } = req.query;
@@ -13,7 +13,6 @@ async function paginar(req, res, next) {
         .sort({ [campoOrdenacao]: ordem })
         .skip((pagina - 1) * limite)
         .limit(limite)
-        .populate("autor")
         .exec();
 
       res.status(200).json(resultadoPaginado);
